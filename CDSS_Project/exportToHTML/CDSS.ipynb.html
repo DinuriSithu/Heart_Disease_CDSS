@@ -1,0 +1,654 @@
+<html>
+<head>
+<title>CDSS.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #7a7e85;}
+.s2 { color: #cf8e6d;}
+.s3 { color: #bcbec4;}
+.s4 { color: #6aab73;}
+.s5 { color: #2aacb8;}
+.ls0 { height: 1px; border-width: 0; color: #43454a; background-color:#43454a}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CDSS.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% 
+</span><span class="s1"># Data manipulation</span>
+<span class="s2">import </span><span class="s0">pandas </span><span class="s2">as </span><span class="s0">pd</span>
+<span class="s2">import </span><span class="s0">numpy </span><span class="s2">as </span><span class="s0">np</span>
+
+<span class="s1"># Visualization</span>
+<span class="s2">import </span><span class="s0">matplotlib</span><span class="s3">.</span><span class="s0">pyplot </span><span class="s2">as </span><span class="s0">plt</span>
+<span class="s2">import </span><span class="s0">seaborn </span><span class="s2">as </span><span class="s0">sns</span>
+
+<span class="s1"># Machine Learning</span>
+<span class="s2">from </span><span class="s0">sklearn</span><span class="s3">.</span><span class="s0">model_selection </span><span class="s2">import </span><span class="s0">train_test_split</span>
+<span class="s2">from </span><span class="s0">sklearn</span><span class="s3">.</span><span class="s0">compose </span><span class="s2">import </span><span class="s0">ColumnTransformer</span>
+<span class="s2">from </span><span class="s0">sklearn</span><span class="s3">.</span><span class="s0">preprocessing </span><span class="s2">import </span><span class="s0">OneHotEncoder</span><span class="s3">, </span><span class="s0">StandardScaler</span>
+<span class="s2">from </span><span class="s0">sklearn</span><span class="s3">.</span><span class="s0">impute </span><span class="s2">import </span><span class="s0">SimpleImputer</span>
+
+<span class="s1"># Feature selection</span>
+<span class="s2">from </span><span class="s0">sklearn</span><span class="s3">.</span><span class="s0">feature_selection </span><span class="s2">import </span><span class="s0">SelectFromModel</span>
+
+<span class="s1"># Evaluation</span>
+<span class="s2">from </span><span class="s0">sklearn</span><span class="s3">.</span><span class="s0">metrics </span><span class="s2">import </span><span class="s3">(</span>
+    <span class="s0">accuracy_score</span><span class="s3">,</span>
+    <span class="s0">precision_score</span><span class="s3">,</span>
+    <span class="s0">recall_score</span><span class="s3">,</span>
+    <span class="s0">f1_score</span><span class="s3">,</span>
+    <span class="s0">roc_auc_score</span><span class="s3">,</span>
+    <span class="s0">confusion_matrix</span><span class="s3">,</span>
+    <span class="s0">classification_report</span><span class="s3">,</span>
+    <span class="s0">ConfusionMatrixDisplay</span><span class="s3">,</span>
+    <span class="s0">RocCurveDisplay</span>
+<span class="s3">)</span>
+
+<span class="s1"># Machine learning models</span>
+<span class="s2">from </span><span class="s0">xgboost </span><span class="s2">import </span><span class="s0">XGBClassifier</span>
+
+<span class="s1"># Class imbalance</span>
+<span class="s2">from </span><span class="s0">imblearn</span><span class="s3">.</span><span class="s0">over_sampling </span><span class="s2">import </span><span class="s0">SMOTE</span>
+
+<span class="s1"># Explainable AI</span>
+<span class="s2">import </span><span class="s0">shap</span>
+
+<span class="s1"># Save models</span>
+<span class="s2">import </span><span class="s0">joblib</span>
+
+<span class="s1"># Display options</span>
+<span class="s0">pd</span><span class="s3">.</span><span class="s0">set_option</span><span class="s3">(</span><span class="s4">&quot;display.max_columns&quot;</span><span class="s3">, </span><span class="s2">None</span><span class="s3">)</span>
+<span class="s0">pd</span><span class="s3">.</span><span class="s0">set_option</span><span class="s3">(</span><span class="s4">&quot;display.width&quot;</span><span class="s3">, </span><span class="s5">1000</span><span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Libraries imported successfully.&quot;</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+df </span><span class="s3">= </span><span class="s0">pd</span><span class="s3">.</span><span class="s0">read_csv</span><span class="s3">(</span><span class="s4">&quot;data/heart.csv&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">df</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+df</span><span class="s3">.</span><span class="s0">head</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Column Names:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">df</span><span class="s3">.</span><span class="s0">columns</span><span class="s3">.</span><span class="s0">tolist</span><span class="s3">())</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;</span><span class="s2">\n</span><span class="s4">Dataset Information:&quot;</span><span class="s3">)</span>
+<span class="s0">df</span><span class="s3">.</span><span class="s0">info</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+df</span><span class="s3">.</span><span class="s0">describe</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Data types:&quot;</span><span class="s3">)</span>
+<span class="s0">df</span><span class="s3">.</span><span class="s0">dtypes</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Missing values:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">df</span><span class="s3">.</span><span class="s0">isnull</span><span class="s3">().</span><span class="s0">sum</span><span class="s3">())</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Number of duplicate rows:&quot;</span><span class="s3">, </span><span class="s0">df</span><span class="s3">.</span><span class="s0">duplicated</span><span class="s3">().</span><span class="s0">sum</span><span class="s3">())</span><hr class="ls0"><span class="s0">#%% 
+df </span><span class="s3">= </span><span class="s0">df</span><span class="s3">.</span><span class="s0">drop_duplicates</span><span class="s3">().</span><span class="s0">reset_index</span><span class="s3">(</span><span class="s0">drop</span><span class="s3">=</span><span class="s2">True</span><span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Shape after removing duplicates:&quot;</span><span class="s3">, </span><span class="s0">df</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Age less than or equal to zero:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">((</span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;Age&quot;</span><span class="s3">] &lt;= </span><span class="s5">0</span><span class="s3">).</span><span class="s0">sum</span><span class="s3">())</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;</span><span class="s2">\n</span><span class="s4">MaxHR less than or equal to zero:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">((</span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;MaxHR&quot;</span><span class="s3">] &lt;= </span><span class="s5">0</span><span class="s3">).</span><span class="s0">sum</span><span class="s3">())</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">].</span><span class="s0">value_counts</span><span class="s3">())</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Unique target values:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">sorted</span><span class="s3">(</span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">].</span><span class="s0">dropna</span><span class="s3">().</span><span class="s0">unique</span><span class="s3">()))</span>
+
+<span class="s2">if </span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">].</span><span class="s0">isnull</span><span class="s3">().</span><span class="s0">any</span><span class="s3">():</span>
+    <span class="s2">raise </span><span class="s0">ValueError</span><span class="s3">(</span><span class="s4">&quot;The target column contains missing values.&quot;</span><span class="s3">)</span>
+
+<span class="s2">if not </span><span class="s0">set</span><span class="s3">(</span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">].</span><span class="s0">unique</span><span class="s3">()).</span><span class="s0">issubset</span><span class="s3">({</span><span class="s5">0</span><span class="s3">, </span><span class="s5">1</span><span class="s3">}):</span>
+    <span class="s2">raise </span><span class="s0">ValueError</span><span class="s3">(</span>
+        <span class="s4">&quot;HeartDisease must contain only 0 and 1. &quot;</span>
+        <span class="s4">&quot;Check the target encoding before continuing.&quot;</span>
+    <span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Target validation completed.&quot;</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">].</span><span class="s0">value_counts</span><span class="s3">(</span><span class="s0">normalize</span><span class="s3">=</span><span class="s2">True</span><span class="s3">) * </span><span class="s5">100</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+plt</span><span class="s3">.</span><span class="s0">figure</span><span class="s3">(</span><span class="s0">figsize</span><span class="s3">=(</span><span class="s5">6</span><span class="s3">, </span><span class="s5">4</span><span class="s3">))</span>
+
+<span class="s0">sns</span><span class="s3">.</span><span class="s0">countplot</span><span class="s3">(</span><span class="s0">data</span><span class="s3">=</span><span class="s0">df</span><span class="s3">, </span><span class="s0">x</span><span class="s3">=</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">)</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">title</span><span class="s3">(</span><span class="s4">&quot;Heart Disease Class Distribution&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">xlabel</span><span class="s3">(</span><span class="s4">&quot;Heart Disease&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">ylabel</span><span class="s3">(</span><span class="s4">&quot;Number of Patients&quot;</span><span class="s3">)</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">show</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+df</span><span class="s3">[</span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">] = (</span>
+    <span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;MaxHR&quot;</span><span class="s3">] / </span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;Age&quot;</span><span class="s3">].</span><span class="s0">replace</span><span class="s3">(</span><span class="s5">0</span><span class="s3">, </span><span class="s0">np</span><span class="s3">.</span><span class="s0">nan</span><span class="s3">)</span>
+<span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Feature engineering completed.&quot;</span><span class="s3">)</span>
+
+<span class="s0">display</span><span class="s3">(</span>
+    <span class="s0">df</span><span class="s3">[[</span><span class="s4">&quot;Age&quot;</span><span class="s3">, </span><span class="s4">&quot;MaxHR&quot;</span><span class="s3">, </span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">]].</span><span class="s0">head</span><span class="s3">()</span>
+<span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Summary of MaxHR_Age_Ratio:&quot;</span><span class="s3">)</span>
+<span class="s0">display</span><span class="s3">(</span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">].</span><span class="s0">describe</span><span class="s3">())</span>
+
+<span class="s0">print</span><span class="s3">(</span>
+    <span class="s4">&quot;Missing or infinite ratio values:&quot;</span><span class="s3">,</span>
+    <span class="s3">(</span>
+        <span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">].</span><span class="s0">isna</span><span class="s3">()</span>
+        <span class="s3">| ~</span><span class="s0">np</span><span class="s3">.</span><span class="s0">isfinite</span><span class="s3">(</span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">])</span>
+    <span class="s3">).</span><span class="s0">sum</span><span class="s3">()</span>
+<span class="s3">)</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">figure</span><span class="s3">(</span><span class="s0">figsize</span><span class="s3">=(</span><span class="s5">7</span><span class="s3">, </span><span class="s5">4</span><span class="s3">))</span>
+<span class="s0">sns</span><span class="s3">.</span><span class="s0">histplot</span><span class="s3">(</span>
+    <span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">].</span><span class="s0">dropna</span><span class="s3">(),</span>
+    <span class="s0">kde</span><span class="s3">=</span><span class="s2">True</span>
+<span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">title</span><span class="s3">(</span><span class="s4">&quot;Distribution of MaxHR_Age_Ratio&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">xlabel</span><span class="s3">(</span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">show</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+X </span><span class="s3">= </span><span class="s0">df</span><span class="s3">.</span><span class="s0">drop</span><span class="s3">(</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">, </span><span class="s0">axis</span><span class="s3">=</span><span class="s5">1</span><span class="s3">)</span>
+<span class="s0">y </span><span class="s3">= </span><span class="s0">df</span><span class="s3">[</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">]</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Feature shape:&quot;</span><span class="s3">, </span><span class="s0">X</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Target shape:&quot;</span><span class="s3">, </span><span class="s0">y</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+categorical_features </span><span class="s3">= [</span>
+    <span class="s4">&quot;Sex&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;ChestPainType&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;RestingECG&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;ExerciseAngina&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;ST_Slope&quot;</span>
+<span class="s3">]</span>
+
+<span class="s0">numerical_features </span><span class="s3">= [</span>
+    <span class="s4">&quot;Age&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;RestingBP&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;Cholesterol&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;FastingBS&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;MaxHR&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;Oldpeak&quot;</span><span class="s3">,</span>
+    <span class="s4">&quot;MaxHR_Age_Ratio&quot;</span>
+<span class="s3">]</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Categorical features:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">categorical_features</span><span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;</span><span class="s2">\n</span><span class="s4">Numerical features:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">numerical_features</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+X_train</span><span class="s3">, </span><span class="s0">X_test</span><span class="s3">, </span><span class="s0">y_train</span><span class="s3">, </span><span class="s0">y_test </span><span class="s3">= </span><span class="s0">train_test_split</span><span class="s3">(</span><span class="s0">X</span><span class="s3">, </span><span class="s0">y</span><span class="s3">,</span>
+    <span class="s0">test_size</span><span class="s3">=</span><span class="s5">0.20</span><span class="s3">,</span>
+    <span class="s0">random_state</span><span class="s3">=</span><span class="s5">42</span><span class="s3">,</span>
+    <span class="s0">stratify</span><span class="s3">=</span><span class="s0">y</span>
+<span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Training set:&quot;</span><span class="s3">, </span><span class="s0">X_train</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Testing set:&quot;</span><span class="s3">, </span><span class="s0">X_test</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Training target:&quot;</span><span class="s3">, </span><span class="s0">y_train</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Testing target:&quot;</span><span class="s3">, </span><span class="s0">y_test</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% md 
+**Create preprocessing pipelines** <hr class="ls0">#%% 
+</span><span class="s2">from </span><span class="s0">sklearn</span><span class="s3">.</span><span class="s0">pipeline </span><span class="s2">import </span><span class="s0">Pipeline</span>
+
+<span class="s1"># Numerical preprocessing pipeline</span>
+<span class="s0">numerical_transformer </span><span class="s3">= </span><span class="s0">Pipeline</span><span class="s3">(</span>
+    <span class="s0">steps</span><span class="s3">=[</span>
+        <span class="s3">(</span><span class="s4">&quot;imputer&quot;</span><span class="s3">, </span><span class="s0">SimpleImputer</span><span class="s3">(</span><span class="s0">strategy</span><span class="s3">=</span><span class="s4">&quot;median&quot;</span><span class="s3">)),</span>
+        <span class="s3">(</span><span class="s4">&quot;scaler&quot;</span><span class="s3">, </span><span class="s0">StandardScaler</span><span class="s3">())</span>
+    <span class="s3">]</span>
+<span class="s3">)</span>
+
+<span class="s1"># Categorical preprocessing pipeline</span>
+<span class="s0">categorical_transformer </span><span class="s3">= </span><span class="s0">Pipeline</span><span class="s3">(</span>
+    <span class="s0">steps</span><span class="s3">=[</span>
+        <span class="s3">(</span><span class="s4">&quot;imputer&quot;</span><span class="s3">, </span><span class="s0">SimpleImputer</span><span class="s3">(</span><span class="s0">strategy</span><span class="s3">=</span><span class="s4">&quot;most_frequent&quot;</span><span class="s3">)),</span>
+        <span class="s3">(</span><span class="s4">&quot;onehot&quot;</span><span class="s3">, </span><span class="s0">OneHotEncoder</span><span class="s3">(</span><span class="s0">handle_unknown</span><span class="s3">=</span><span class="s4">&quot;ignore&quot;</span><span class="s3">, </span><span class="s0">sparse_output</span><span class="s3">=</span><span class="s2">False</span><span class="s3">))</span>
+    <span class="s3">]</span>
+<span class="s3">)</span>
+
+<span class="s1"># Combine both preprocessing pipelines</span>
+<span class="s0">preprocessor </span><span class="s3">= </span><span class="s0">ColumnTransformer</span><span class="s3">(</span>
+    <span class="s0">transformers</span><span class="s3">=[</span>
+        <span class="s3">(</span><span class="s4">&quot;num&quot;</span><span class="s3">, </span><span class="s0">numerical_transformer</span><span class="s3">, </span><span class="s0">numerical_features</span><span class="s3">),</span>
+        <span class="s3">(</span><span class="s4">&quot;cat&quot;</span><span class="s3">, </span><span class="s0">categorical_transformer</span><span class="s3">, </span><span class="s0">categorical_features</span><span class="s3">)</span>
+    <span class="s3">]</span>
+<span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Preprocessing pipeline created successfully.&quot;</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+X_train_processed </span><span class="s3">= </span><span class="s0">preprocessor</span><span class="s3">.</span><span class="s0">fit_transform</span><span class="s3">(</span><span class="s0">X_train</span><span class="s3">)</span>
+
+<span class="s0">X_test_processed </span><span class="s3">= </span><span class="s0">preprocessor</span><span class="s3">.</span><span class="s0">transform</span><span class="s3">(</span><span class="s0">X_test</span><span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Training data after preprocessing:&quot;</span><span class="s3">, </span><span class="s0">X_train_processed</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Testing data after preprocessing:&quot;</span><span class="s3">, </span><span class="s0">X_test_processed</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+preprocessor</span><span class="s3">.</span><span class="s0">fit_transform</span><span class="s3">(</span><span class="s0">X_train</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+preprocessor</span><span class="s3">.</span><span class="s0">transform</span><span class="s3">(</span><span class="s0">X_test</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+feature_names </span><span class="s3">= </span><span class="s0">preprocessor</span><span class="s3">.</span><span class="s0">get_feature_names_out</span><span class="s3">()</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Number of processed features:&quot;</span><span class="s3">, </span><span class="s0">len</span><span class="s3">(</span><span class="s0">feature_names</span><span class="s3">))</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;</span><span class="s2">\n</span><span class="s4">Processed feature names:&quot;</span><span class="s3">)</span>
+<span class="s2">for </span><span class="s0">feature </span><span class="s2">in </span><span class="s0">feature_names</span><span class="s3">:</span>
+    <span class="s0">print</span><span class="s3">(</span><span class="s0">feature</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+X_train_processed_df </span><span class="s3">= </span><span class="s0">pd</span><span class="s3">.</span><span class="s0">DataFrame</span><span class="s3">(</span>
+    <span class="s0">X_train_processed</span><span class="s3">,</span>
+    <span class="s0">columns</span><span class="s3">=</span><span class="s0">feature_names</span><span class="s3">,</span>
+    <span class="s0">index</span><span class="s3">=</span><span class="s0">X_train</span><span class="s3">.</span><span class="s0">index</span>
+<span class="s3">)</span>
+
+<span class="s0">X_test_processed_df </span><span class="s3">= </span><span class="s0">pd</span><span class="s3">.</span><span class="s0">DataFrame</span><span class="s3">(</span>
+    <span class="s0">X_test_processed</span><span class="s3">,</span>
+    <span class="s0">columns</span><span class="s3">=</span><span class="s0">feature_names</span><span class="s3">,</span>
+    <span class="s0">index</span><span class="s3">=</span><span class="s0">X_test</span><span class="s3">.</span><span class="s0">index</span>
+<span class="s3">)</span>
+
+<span class="s0">X_train_processed_df</span><span class="s3">.</span><span class="s0">head</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s2">from </span><span class="s0">sklearn</span><span class="s3">.</span><span class="s0">base </span><span class="s2">import </span><span class="s0">clone</span>
+
+<span class="s1"># Use the same model settings for both experiments</span>
+<span class="s0">ratio_test_model </span><span class="s3">= </span><span class="s0">XGBClassifier</span><span class="s3">(</span>
+    <span class="s0">n_estimators</span><span class="s3">=</span><span class="s5">200</span><span class="s3">,</span>
+    <span class="s0">max_depth</span><span class="s3">=</span><span class="s5">4</span><span class="s3">,</span>
+    <span class="s0">learning_rate</span><span class="s3">=</span><span class="s5">0.05</span><span class="s3">,</span>
+    <span class="s0">subsample</span><span class="s3">=</span><span class="s5">0.8</span><span class="s3">,</span>
+    <span class="s0">colsample_bytree</span><span class="s3">=</span><span class="s5">0.8</span><span class="s3">,</span>
+    <span class="s0">random_state</span><span class="s3">=</span><span class="s5">42</span><span class="s3">,</span>
+    <span class="s0">eval_metric</span><span class="s3">=</span><span class="s4">&quot;logloss&quot;</span>
+<span class="s3">)</span>
+
+<span class="s1"># Experiment A: With MaxHR_Age_Ratio</span>
+<span class="s0">ratio_test_model</span><span class="s3">.</span><span class="s0">fit</span><span class="s3">(</span>
+    <span class="s0">X_train_processed</span><span class="s3">,</span>
+    <span class="s0">y_train</span>
+<span class="s3">)</span>
+
+<span class="s0">pred_with_ratio </span><span class="s3">= </span><span class="s0">ratio_test_model</span><span class="s3">.</span><span class="s0">predict</span><span class="s3">(</span><span class="s0">X_test_processed</span><span class="s3">)</span>
+<span class="s0">prob_with_ratio </span><span class="s3">= </span><span class="s0">ratio_test_model</span><span class="s3">.</span><span class="s0">predict_proba</span><span class="s3">(</span><span class="s0">X_test_processed</span><span class="s3">)[:, </span><span class="s5">1</span><span class="s3">]</span>
+
+<span class="s1"># Experiment B: Without MaxHR_Age_Ratio</span>
+<span class="s0">X_train_without_ratio </span><span class="s3">= </span><span class="s0">X_train</span><span class="s3">.</span><span class="s0">drop</span><span class="s3">(</span>
+    <span class="s0">columns</span><span class="s3">=[</span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">]</span>
+<span class="s3">)</span>
+
+<span class="s0">X_test_without_ratio </span><span class="s3">= </span><span class="s0">X_test</span><span class="s3">.</span><span class="s0">drop</span><span class="s3">(</span>
+    <span class="s0">columns</span><span class="s3">=[</span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span><span class="s3">]</span>
+<span class="s3">)</span>
+
+<span class="s0">numerical_without_ratio </span><span class="s3">= [</span>
+    <span class="s0">column </span><span class="s2">for </span><span class="s0">column </span><span class="s2">in </span><span class="s0">numerical_features</span>
+    <span class="s2">if </span><span class="s0">column </span><span class="s3">!= </span><span class="s4">&quot;MaxHR_Age_Ratio&quot;</span>
+<span class="s3">]</span>
+
+<span class="s0">preprocessor_without_ratio </span><span class="s3">= </span><span class="s0">ColumnTransformer</span><span class="s3">(</span>
+    <span class="s0">transformers</span><span class="s3">=[</span>
+        <span class="s3">(</span>
+            <span class="s4">&quot;num&quot;</span><span class="s3">,</span>
+            <span class="s0">clone</span><span class="s3">(</span><span class="s0">numerical_transformer</span><span class="s3">),</span>
+            <span class="s0">numerical_without_ratio</span>
+        <span class="s3">),</span>
+        <span class="s3">(</span>
+            <span class="s4">&quot;cat&quot;</span><span class="s3">,</span>
+            <span class="s0">clone</span><span class="s3">(</span><span class="s0">categorical_transformer</span><span class="s3">),</span>
+            <span class="s0">categorical_features</span>
+        <span class="s3">)</span>
+    <span class="s3">],</span>
+    <span class="s0">verbose_feature_names_out</span><span class="s3">=</span><span class="s2">False</span>
+<span class="s3">)</span>
+
+<span class="s0">train_without_ratio </span><span class="s3">= </span><span class="s0">preprocessor_without_ratio</span><span class="s3">.</span><span class="s0">fit_transform</span><span class="s3">(</span>
+    <span class="s0">X_train_without_ratio</span>
+<span class="s3">)</span>
+
+<span class="s0">test_without_ratio </span><span class="s3">= </span><span class="s0">preprocessor_without_ratio</span><span class="s3">.</span><span class="s0">transform</span><span class="s3">(</span>
+    <span class="s0">X_test_without_ratio</span>
+<span class="s3">)</span>
+
+<span class="s0">model_without_ratio </span><span class="s3">= </span><span class="s0">XGBClassifier</span><span class="s3">(</span>
+    <span class="s0">n_estimators</span><span class="s3">=</span><span class="s5">200</span><span class="s3">,</span>
+    <span class="s0">max_depth</span><span class="s3">=</span><span class="s5">4</span><span class="s3">,</span>
+    <span class="s0">learning_rate</span><span class="s3">=</span><span class="s5">0.05</span><span class="s3">,</span>
+    <span class="s0">subsample</span><span class="s3">=</span><span class="s5">0.8</span><span class="s3">,</span>
+    <span class="s0">colsample_bytree</span><span class="s3">=</span><span class="s5">0.8</span><span class="s3">,</span>
+    <span class="s0">random_state</span><span class="s3">=</span><span class="s5">42</span><span class="s3">,</span>
+    <span class="s0">eval_metric</span><span class="s3">=</span><span class="s4">&quot;logloss&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">model_without_ratio</span><span class="s3">.</span><span class="s0">fit</span><span class="s3">(</span><span class="s0">train_without_ratio</span><span class="s3">, </span><span class="s0">y_train</span><span class="s3">)</span>
+
+<span class="s0">pred_without_ratio </span><span class="s3">= </span><span class="s0">model_without_ratio</span><span class="s3">.</span><span class="s0">predict</span><span class="s3">(</span><span class="s0">test_without_ratio</span><span class="s3">)</span>
+<span class="s0">prob_without_ratio </span><span class="s3">= </span><span class="s0">model_without_ratio</span><span class="s3">.</span><span class="s0">predict_proba</span><span class="s3">(</span><span class="s0">test_without_ratio</span><span class="s3">)[:, </span><span class="s5">1</span><span class="s3">]</span>
+
+<span class="s1"># Compare results</span>
+<span class="s0">ratio_comparison </span><span class="s3">= </span><span class="s0">pd</span><span class="s3">.</span><span class="s0">DataFrame</span><span class="s3">([</span>
+    <span class="s3">{</span>
+        <span class="s4">&quot;Experiment&quot;</span><span class="s3">: </span><span class="s4">&quot;With MaxHR_Age_Ratio&quot;</span><span class="s3">,</span>
+        <span class="s4">&quot;Accuracy&quot;</span><span class="s3">: </span><span class="s0">accuracy_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">pred_with_ratio</span><span class="s3">),</span>
+        <span class="s4">&quot;F1 Score&quot;</span><span class="s3">: </span><span class="s0">f1_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">pred_with_ratio</span><span class="s3">),</span>
+        <span class="s4">&quot;ROC-AUC&quot;</span><span class="s3">: </span><span class="s0">roc_auc_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">prob_with_ratio</span><span class="s3">)</span>
+    <span class="s3">},</span>
+    <span class="s3">{</span>
+        <span class="s4">&quot;Experiment&quot;</span><span class="s3">: </span><span class="s4">&quot;Without MaxHR_Age_Ratio&quot;</span><span class="s3">,</span>
+        <span class="s4">&quot;Accuracy&quot;</span><span class="s3">: </span><span class="s0">accuracy_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">pred_without_ratio</span><span class="s3">),</span>
+        <span class="s4">&quot;F1 Score&quot;</span><span class="s3">: </span><span class="s0">f1_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">pred_without_ratio</span><span class="s3">),</span>
+        <span class="s4">&quot;ROC-AUC&quot;</span><span class="s3">: </span><span class="s0">roc_auc_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">prob_without_ratio</span><span class="s3">)</span>
+    <span class="s3">}</span>
+<span class="s3">])</span>
+
+<span class="s0">display</span><span class="s3">(</span><span class="s0">ratio_comparison</span><span class="s3">.</span><span class="s0">round</span><span class="s3">(</span><span class="s5">4</span><span class="s3">))</span><hr class="ls0"><span class="s0">#%% md 
+**Check class imbalance** <hr class="ls0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Training class distribution before SMOTE:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">y_train</span><span class="s3">.</span><span class="s0">value_counts</span><span class="s3">())</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;</span><span class="s2">\n</span><span class="s4">Training class percentages:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">y_train</span><span class="s3">.</span><span class="s0">value_counts</span><span class="s3">(</span><span class="s0">normalize</span><span class="s3">=</span><span class="s2">True</span><span class="s3">) * </span><span class="s5">100</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+plt</span><span class="s3">.</span><span class="s0">figure</span><span class="s3">(</span><span class="s0">figsize</span><span class="s3">=(</span><span class="s5">6</span><span class="s3">, </span><span class="s5">4</span><span class="s3">))</span>
+<span class="s0">sns</span><span class="s3">.</span><span class="s0">countplot</span><span class="s3">(</span><span class="s0">x</span><span class="s3">=</span><span class="s0">y_train</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">title</span><span class="s3">(</span><span class="s4">&quot;Training Class Distribution Before SMOTE&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">xlabel</span><span class="s3">(</span><span class="s4">&quot;HeartDisease&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">ylabel</span><span class="s3">(</span><span class="s4">&quot;Number of Records&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">show</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+smote </span><span class="s3">= </span><span class="s0">SMOTE</span><span class="s3">(</span>
+    <span class="s0">random_state</span><span class="s3">=</span><span class="s5">42</span>
+<span class="s3">)</span>
+
+<span class="s0">X_train_smote</span><span class="s3">, </span><span class="s0">y_train_smote </span><span class="s3">= </span><span class="s0">smote</span><span class="s3">.</span><span class="s0">fit_resample</span><span class="s3">(</span>
+    <span class="s0">X_train_processed_df</span><span class="s3">,</span>
+    <span class="s0">y_train</span>
+<span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Before SMOTE:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">y_train</span><span class="s3">.</span><span class="s0">value_counts</span><span class="s3">())</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;</span><span class="s2">\n</span><span class="s4">After SMOTE:&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s0">y_train_smote</span><span class="s3">.</span><span class="s0">value_counts</span><span class="s3">())</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span><span class="s4">&quot;Training features after SMOTE:&quot;</span><span class="s3">, </span><span class="s0">X_train_smote</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Test features remain unchanged:&quot;</span><span class="s3">, </span><span class="s0">X_test_processed</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s1"># Train XGBoost with named columns</span>
+<span class="s0">feature_selector_model </span><span class="s3">= </span><span class="s0">XGBClassifier</span><span class="s3">(</span>
+    <span class="s0">n_estimators</span><span class="s3">=</span><span class="s5">200</span><span class="s3">,</span>
+    <span class="s0">max_depth</span><span class="s3">=</span><span class="s5">3</span><span class="s3">,</span>
+    <span class="s0">learning_rate</span><span class="s3">=</span><span class="s5">0.05</span><span class="s3">,</span>
+    <span class="s0">subsample</span><span class="s3">=</span><span class="s5">0.8</span><span class="s3">,</span>
+    <span class="s0">colsample_bytree</span><span class="s3">=</span><span class="s5">0.8</span><span class="s3">,</span>
+    <span class="s0">random_state</span><span class="s3">=</span><span class="s5">42</span><span class="s3">,</span>
+    <span class="s0">eval_metric</span><span class="s3">=</span><span class="s4">&quot;logloss&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">feature_selector_model</span><span class="s3">.</span><span class="s0">fit</span><span class="s3">(</span>
+    <span class="s0">X_train_smote</span><span class="s3">,</span>
+    <span class="s0">y_train_smote</span>
+<span class="s3">)</span>
+
+<span class="s1"># Create the selector</span>
+<span class="s0">selector </span><span class="s3">= </span><span class="s0">SelectFromModel</span><span class="s3">(</span>
+    <span class="s0">feature_selector_model</span><span class="s3">,</span>
+    <span class="s0">threshold</span><span class="s3">=</span><span class="s4">&quot;median&quot;</span><span class="s3">,</span>
+    <span class="s0">prefit</span><span class="s3">=</span><span class="s2">True</span>
+<span class="s3">)</span>
+
+<span class="s1"># Identify selected columns</span>
+<span class="s0">selected_features </span><span class="s3">= </span><span class="s0">X_train_smote</span><span class="s3">.</span><span class="s0">columns</span><span class="s3">[</span><span class="s0">selector</span><span class="s3">.</span><span class="s0">get_support</span><span class="s3">()].</span><span class="s0">tolist</span><span class="s3">()</span>
+
+<span class="s1"># Select features directly by their column names</span>
+<span class="s0">X_train_selected </span><span class="s3">= </span><span class="s0">X_train_smote</span><span class="s3">[</span><span class="s0">selected_features</span><span class="s3">].</span><span class="s0">copy</span><span class="s3">()</span>
+<span class="s0">X_test_selected </span><span class="s3">= </span><span class="s0">X_test_processed_df</span><span class="s3">[</span><span class="s0">selected_features</span><span class="s3">].</span><span class="s0">copy</span><span class="s3">()</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Original number of features:&quot;</span><span class="s3">, </span><span class="s0">X_train_smote</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">[</span><span class="s5">1</span><span class="s3">])</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Selected number of features:&quot;</span><span class="s3">, </span><span class="s0">len</span><span class="s3">(</span><span class="s0">selected_features</span><span class="s3">))</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Training shape:&quot;</span><span class="s3">, </span><span class="s0">X_train_selected</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Testing shape:&quot;</span><span class="s3">, </span><span class="s0">X_test_selected</span><span class="s3">.</span><span class="s0">shape</span><span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;</span><span class="s2">\n</span><span class="s4">Selected features:&quot;</span><span class="s3">, </span><span class="s0">selected_features</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% md 
+**Train the model** <hr class="ls0">#%% 
+xgb_model </span><span class="s3">= </span><span class="s0">XGBClassifier</span><span class="s3">(</span>
+    <span class="s0">n_estimators</span><span class="s3">=</span><span class="s5">300</span><span class="s3">,</span>
+    <span class="s0">max_depth</span><span class="s3">=</span><span class="s5">4</span><span class="s3">,</span>
+    <span class="s0">learning_rate</span><span class="s3">=</span><span class="s5">0.05</span><span class="s3">,</span>
+    <span class="s0">subsample</span><span class="s3">=</span><span class="s5">0.8</span><span class="s3">,</span>
+    <span class="s0">colsample_bytree</span><span class="s3">=</span><span class="s5">0.8</span><span class="s3">,</span>
+    <span class="s0">random_state</span><span class="s3">=</span><span class="s5">42</span><span class="s3">,</span>
+    <span class="s0">eval_metric</span><span class="s3">=</span><span class="s4">&quot;logloss&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">xgb_model</span><span class="s3">.</span><span class="s0">fit</span><span class="s3">(</span>
+    <span class="s0">X_train_selected</span><span class="s3">,</span>
+    <span class="s0">y_train_smote</span>
+<span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Final XGBoost model trained successfully.&quot;</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% md 
+Generate predictions <hr class="ls0">#%% 
+y_pred </span><span class="s3">= </span><span class="s0">xgb_model</span><span class="s3">.</span><span class="s0">predict</span><span class="s3">(</span><span class="s0">X_test_selected</span><span class="s3">)</span>
+
+<span class="s0">y_probability </span><span class="s3">= </span><span class="s0">xgb_model</span><span class="s3">.</span><span class="s0">predict_proba</span><span class="s3">(</span><span class="s0">X_test_selected</span><span class="s3">)[:, </span><span class="s5">1</span><span class="s3">]</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Predictions generated successfully.&quot;</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+accuracy </span><span class="s3">= </span><span class="s0">accuracy_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">y_pred</span><span class="s3">)</span>
+
+<span class="s0">precision </span><span class="s3">= </span><span class="s0">precision_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">y_pred</span><span class="s3">)</span>
+
+<span class="s0">recall </span><span class="s3">= </span><span class="s0">recall_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">y_pred</span><span class="s3">)</span>
+
+<span class="s0">f1 </span><span class="s3">= </span><span class="s0">f1_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">y_pred</span><span class="s3">)</span>
+
+<span class="s0">roc_auc </span><span class="s3">= </span><span class="s0">roc_auc_score</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">y_probability</span><span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Model Evaluation Results&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;------------------------&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">f&quot;Accuracy : </span><span class="s2">{</span><span class="s0">accuracy</span><span class="s2">:</span><span class="s4">.4f</span><span class="s2">}</span><span class="s4">&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">f&quot;Precision: </span><span class="s2">{</span><span class="s0">precision</span><span class="s2">:</span><span class="s4">.4f</span><span class="s2">}</span><span class="s4">&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">f&quot;Recall   : </span><span class="s2">{</span><span class="s0">recall</span><span class="s2">:</span><span class="s4">.4f</span><span class="s2">}</span><span class="s4">&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">f&quot;F1 Score : </span><span class="s2">{</span><span class="s0">f1</span><span class="s2">:</span><span class="s4">.4f</span><span class="s2">}</span><span class="s4">&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">f&quot;ROC-AUC  : </span><span class="s2">{</span><span class="s0">roc_auc</span><span class="s2">:</span><span class="s4">.4f</span><span class="s2">}</span><span class="s4">&quot;</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s3">(</span>
+    <span class="s0">classification_report</span><span class="s3">(</span>
+        <span class="s0">y_test</span><span class="s3">,</span>
+        <span class="s0">y_pred</span><span class="s3">,</span>
+        <span class="s0">target_names</span><span class="s3">=[</span><span class="s4">&quot;No Heart Disease&quot;</span><span class="s3">, </span><span class="s4">&quot;Heart Disease&quot;</span><span class="s3">]</span>
+    <span class="s3">)</span>
+<span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+cm </span><span class="s3">= </span><span class="s0">confusion_matrix</span><span class="s3">(</span><span class="s0">y_test</span><span class="s3">, </span><span class="s0">y_pred</span><span class="s3">)</span>
+
+<span class="s0">disp </span><span class="s3">= </span><span class="s0">ConfusionMatrixDisplay</span><span class="s3">(</span>
+    <span class="s0">confusion_matrix</span><span class="s3">=</span><span class="s0">cm</span><span class="s3">,</span>
+    <span class="s0">display_labels</span><span class="s3">=[</span><span class="s4">&quot;No Heart Disease&quot;</span><span class="s3">, </span><span class="s4">&quot;Heart Disease&quot;</span><span class="s3">]</span>
+<span class="s3">)</span>
+
+<span class="s0">disp</span><span class="s3">.</span><span class="s0">plot</span><span class="s3">()</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">title</span><span class="s3">(</span><span class="s4">&quot;XGBoost Confusion Matrix&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">show</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+RocCurveDisplay</span><span class="s3">.</span><span class="s0">from_predictions</span><span class="s3">(</span>
+    <span class="s0">y_test</span><span class="s3">,</span>
+    <span class="s0">y_probability</span>
+<span class="s3">)</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">title</span><span class="s3">(</span><span class="s4">&quot;XGBoost ROC Curve&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">show</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+importance </span><span class="s3">= </span><span class="s0">xgb_model</span><span class="s3">.</span><span class="s0">feature_importances_</span>
+
+<span class="s0">feature_importance_df </span><span class="s3">= </span><span class="s0">pd</span><span class="s3">.</span><span class="s0">DataFrame</span><span class="s3">({</span>
+    <span class="s4">&quot;Feature&quot;</span><span class="s3">: </span><span class="s0">selected_features</span><span class="s3">,</span>
+    <span class="s4">&quot;Importance&quot;</span><span class="s3">: </span><span class="s0">importance</span>
+<span class="s3">})</span>
+
+<span class="s0">feature_importance_df </span><span class="s3">= </span><span class="s0">feature_importance_df</span><span class="s3">.</span><span class="s0">sort_values</span><span class="s3">(</span>
+    <span class="s0">by</span><span class="s3">=</span><span class="s4">&quot;Importance&quot;</span><span class="s3">,</span>
+    <span class="s0">ascending</span><span class="s3">=</span><span class="s2">False</span>
+<span class="s3">)</span>
+
+<span class="s0">feature_importance_df</span><hr class="ls0"><span class="s0">#%% 
+plt</span><span class="s3">.</span><span class="s0">figure</span><span class="s3">(</span><span class="s0">figsize</span><span class="s3">=(</span><span class="s5">10</span><span class="s3">, </span><span class="s5">6</span><span class="s3">))</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">barh</span><span class="s3">(</span>
+    <span class="s0">feature_importance_df</span><span class="s3">[</span><span class="s4">&quot;Feature&quot;</span><span class="s3">],</span>
+    <span class="s0">feature_importance_df</span><span class="s3">[</span><span class="s4">&quot;Importance&quot;</span><span class="s3">]</span>
+<span class="s3">)</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">xlabel</span><span class="s3">(</span><span class="s4">&quot;Importance&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">ylabel</span><span class="s3">(</span><span class="s4">&quot;Feature&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">title</span><span class="s3">(</span><span class="s4">&quot;XGBoost Feature Importance&quot;</span><span class="s3">)</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">gca</span><span class="s3">().</span><span class="s0">invert_yaxis</span><span class="s3">()</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">show</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s2">import </span><span class="s0">os</span>
+<span class="s2">import </span><span class="s0">joblib</span>
+<span class="s2">import </span><span class="s0">json</span>
+
+<span class="s1"># Create the models folder if it does not exist</span>
+<span class="s0">os</span><span class="s3">.</span><span class="s0">makedirs</span><span class="s3">(</span><span class="s4">&quot;../models_dir&quot;</span><span class="s3">, </span><span class="s0">exist_ok</span><span class="s3">=</span><span class="s2">True</span><span class="s3">)</span>
+
+<span class="s1"># Save preprocessing pipeline</span>
+<span class="s0">joblib</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span>
+    <span class="s0">preprocessor</span><span class="s3">,</span>
+    <span class="s4">&quot;../models_dir/preprocessor.pkl&quot;</span>
+
+<span class="s3">)</span>
+
+<span class="s1"># Save feature selector</span>
+<span class="s0">joblib</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span>
+    <span class="s0">selector</span><span class="s3">,</span>
+    <span class="s4">&quot;../models_dir/feature_selector.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s1"># Save the final XGBoost model</span>
+<span class="s0">joblib</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span>
+    <span class="s0">xgb_model</span><span class="s3">,</span>
+    <span class="s4">&quot;../models_dir/xgboost_model.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s1"># Save selected feature names</span>
+<span class="s0">joblib</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span>
+    <span class="s0">selected_features</span><span class="s3">,</span>
+    <span class="s4">&quot;../models_dir/selected_features.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s1"># Save feature metadata</span>
+<span class="s2">with </span><span class="s0">open</span><span class="s3">(</span><span class="s4">&quot;../models_dir/selected_features.json&quot;</span><span class="s3">, </span><span class="s4">&quot;w&quot;</span><span class="s3">) </span><span class="s2">as </span><span class="s0">file</span><span class="s3">:</span>
+    <span class="s0">json</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span><span class="s0">selected_features</span><span class="s3">, </span><span class="s0">file</span><span class="s3">, </span><span class="s0">indent</span><span class="s3">=</span><span class="s5">4</span><span class="s3">)</span>
+
+
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;All components saved successfully.&quot;</span><span class="s3">)</span>
+<hr class="ls0"><span class="s0">#%% 
+</span>
+<span class="s2">import </span><span class="s0">joblib</span>
+<span class="s2">import </span><span class="s0">numpy </span><span class="s2">as </span><span class="s0">np</span>
+<span class="s2">import </span><span class="s0">pandas </span><span class="s2">as </span><span class="s0">pd</span>
+
+<span class="s1"># Load the saved components</span>
+<span class="s0">loaded_preprocessor </span><span class="s3">= </span><span class="s0">joblib</span><span class="s3">.</span><span class="s0">load</span><span class="s3">(</span>
+    <span class="s4">&quot;../models_dir/preprocessor.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">loaded_selector </span><span class="s3">= </span><span class="s0">joblib</span><span class="s3">.</span><span class="s0">load</span><span class="s3">(</span>
+    <span class="s4">&quot;../models_dir/feature_selector.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">loaded_model </span><span class="s3">= </span><span class="s0">joblib</span><span class="s3">.</span><span class="s0">load</span><span class="s3">(</span>
+    <span class="s4">&quot;../models_dir/xgboost_model.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">loaded_features </span><span class="s3">= </span><span class="s0">joblib</span><span class="s3">.</span><span class="s0">load</span><span class="s3">(</span>
+    <span class="s4">&quot;../models_dir/selected_features.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Preprocessor loaded:&quot;</span><span class="s3">, </span><span class="s0">loaded_preprocessor </span><span class="s2">is not None</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Feature selector loaded:&quot;</span><span class="s3">, </span><span class="s0">loaded_selector </span><span class="s2">is not None</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;XGBoost model loaded:&quot;</span><span class="s3">, </span><span class="s0">loaded_model </span><span class="s2">is not None</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Selected features loaded:&quot;</span><span class="s3">, </span><span class="s0">len</span><span class="s3">(</span><span class="s0">loaded_features</span><span class="s3">))</span>
+
+<span class="s1"># Convert processed test data into a DataFrame</span>
+<span class="s1"># using the feature names from the fitted preprocessor</span>
+<span class="s0">processed_feature_names </span><span class="s3">= (</span>
+    <span class="s0">loaded_preprocessor</span><span class="s3">.</span><span class="s0">get_feature_names_out</span><span class="s3">()</span>
+<span class="s3">)</span>
+
+<span class="s0">X_test_processed_df </span><span class="s3">= </span><span class="s0">pd</span><span class="s3">.</span><span class="s0">DataFrame</span><span class="s3">(</span>
+    <span class="s0">X_test_processed</span><span class="s3">,</span>
+    <span class="s0">columns</span><span class="s3">=</span><span class="s0">processed_feature_names</span><span class="s3">,</span>
+    <span class="s0">index</span><span class="s3">=</span><span class="s0">getattr</span><span class="s3">(</span><span class="s0">X_test_processed</span><span class="s3">, </span><span class="s4">&quot;index&quot;</span><span class="s3">, </span><span class="s2">None</span><span class="s3">)</span>
+<span class="s3">)</span>
+
+<span class="s1"># Select the same features used to train the final model</span>
+<span class="s0">X_test_selected </span><span class="s3">= </span><span class="s0">X_test_processed_df</span><span class="s3">[</span><span class="s0">loaded_features</span><span class="s3">].</span><span class="s0">copy</span><span class="s3">()</span>
+
+<span class="s1"># Predict using the loaded model</span>
+<span class="s0">loaded_predictions </span><span class="s3">= </span><span class="s0">loaded_model</span><span class="s3">.</span><span class="s0">predict</span><span class="s3">(</span><span class="s0">X_test_selected</span><span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Loaded model tested successfully!&quot;</span><span class="s3">)</span>
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Number of predictions:&quot;</span><span class="s3">, </span><span class="s0">len</span><span class="s3">(</span><span class="s0">loaded_predictions</span><span class="s3">))</span>
+
+<span class="s1"># Compare with previous predictions, if available</span>
+<span class="s2">if </span><span class="s4">&quot;y_pred&quot; </span><span class="s2">in </span><span class="s0">globals</span><span class="s3">():</span>
+    <span class="s0">print</span><span class="s3">(</span>
+        <span class="s4">&quot;Loaded model predictions match:&quot;</span><span class="s3">,</span>
+        <span class="s0">np</span><span class="s3">.</span><span class="s0">array_equal</span><span class="s3">(</span><span class="s0">loaded_predictions</span><span class="s3">, </span><span class="s0">y_pred</span><span class="s3">)</span>
+    <span class="s3">)</span>
+<hr class="ls0"><span class="s0">#%% md 
+# **Calculate SHAP values** <hr class="ls0">#%% 
+explainer </span><span class="s3">= </span><span class="s0">shap</span><span class="s3">.</span><span class="s0">TreeExplainer</span><span class="s3">(</span><span class="s0">xgb_model</span><span class="s3">)</span>
+
+<span class="s0">shap_values </span><span class="s3">= </span><span class="s0">explainer</span><span class="s3">.</span><span class="s0">shap_values</span><span class="s3">(</span><span class="s0">X_test_selected</span><span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;SHAP values generated successfully.&quot;</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+shap</span><span class="s3">.</span><span class="s0">summary_plot</span><span class="s3">(</span>
+    <span class="s0">shap_values</span><span class="s3">,</span>
+    <span class="s0">max_display</span><span class="s3">=</span><span class="s5">15</span><span class="s3">,</span>
+    <span class="s0">show</span><span class="s3">=</span><span class="s2">False</span>
+<span class="s3">)</span>
+
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">title</span><span class="s3">(</span><span class="s4">&quot;SHAP Summary Plot — Heart Disease Prediction&quot;</span><span class="s3">)</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">tight_layout</span><span class="s3">()</span>
+<span class="s0">plt</span><span class="s3">.</span><span class="s0">show</span><span class="s3">()</span><hr class="ls0"><span class="s0">#%% 
+shap</span><span class="s3">.</span><span class="s0">summary_plot</span><span class="s3">(</span>
+    <span class="s0">shap_values</span><span class="s3">,</span>
+    <span class="s0">X_test_selected</span><span class="s3">,</span>
+    <span class="s0">feature_names</span><span class="s3">=</span><span class="s0">selected_features</span>
+<span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+shap</span><span class="s3">.</span><span class="s0">summary_plot</span><span class="s3">(</span>
+    <span class="s0">shap_values</span><span class="s3">,</span>
+    <span class="s0">X_test_selected</span><span class="s3">,</span>
+    <span class="s0">feature_names</span><span class="s3">=</span><span class="s0">selected_features</span><span class="s3">,</span>
+    <span class="s0">plot_type</span><span class="s3">=</span><span class="s4">&quot;bar&quot;</span>
+<span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s2">import </span><span class="s0">os</span>
+<span class="s2">import </span><span class="s0">joblib</span>
+
+<span class="s1"># Create the models folder if it does not exist</span>
+<span class="s0">os</span><span class="s3">.</span><span class="s0">makedirs</span><span class="s3">(</span><span class="s4">&quot;../models&quot;</span><span class="s3">, </span><span class="s0">exist_ok</span><span class="s3">=</span><span class="s2">True</span><span class="s3">)</span>
+
+<span class="s1"># Save the preprocessing pipeline</span>
+<span class="s0">joblib</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span>
+    <span class="s0">preprocessor</span><span class="s3">,</span>
+    <span class="s4">&quot;../models/preprocessor.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s1"># Save the feature selector</span>
+<span class="s0">joblib</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span>
+    <span class="s0">selector</span><span class="s3">,</span>
+    <span class="s4">&quot;../models/feature_selector.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s1"># Save the XGBoost model</span>
+<span class="s0">joblib</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span>
+    <span class="s0">xgb_model</span><span class="s3">,</span>
+    <span class="s4">&quot;../models/xgboost_model.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s1"># Save the selected feature names</span>
+<span class="s0">joblib</span><span class="s3">.</span><span class="s0">dump</span><span class="s3">(</span>
+    <span class="s0">selected_features</span><span class="s3">,</span>
+    <span class="s4">&quot;../models/selected_features.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;All ML components saved successfully.&quot;</span><span class="s3">)</span><hr class="ls0"><span class="s0">#%% 
+loaded_preprocessor </span><span class="s3">= </span><span class="s0">joblib</span><span class="s3">.</span><span class="s0">load</span><span class="s3">(</span>
+    <span class="s4">&quot;../models/preprocessor.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">loaded_selector </span><span class="s3">= </span><span class="s0">joblib</span><span class="s3">.</span><span class="s0">load</span><span class="s3">(</span>
+    <span class="s4">&quot;../models/feature_selector.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">loaded_model </span><span class="s3">= </span><span class="s0">joblib</span><span class="s3">.</span><span class="s0">load</span><span class="s3">(</span>
+    <span class="s4">&quot;../models/xgboost_model.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">loaded_features </span><span class="s3">= </span><span class="s0">joblib</span><span class="s3">.</span><span class="s0">load</span><span class="s3">(</span>
+    <span class="s4">&quot;../models/selected_features.pkl&quot;</span>
+<span class="s3">)</span>
+
+<span class="s0">print</span><span class="s3">(</span><span class="s4">&quot;Saved components loaded successfully.&quot;</span><span class="s3">)</span></pre>
+</body>
+</html>

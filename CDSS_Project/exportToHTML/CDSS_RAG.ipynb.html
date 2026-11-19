@@ -1,0 +1,670 @@
+<html>
+<head>
+<title>CDSS_RAG.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #cf8e6d;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.s5 { color: #7a7e85;}
+.ls0 { height: 1px; border-width: 0; color: #43454a; background-color:#43454a}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CDSS_RAG.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s0">sys</span>
+<span class="s1">import </span><span class="s0">os</span>
+<span class="s1">import </span><span class="s0">importlib</span><span class="s2">.</span><span class="s0">util</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Python version:&quot;</span><span class="s2">, </span><span class="s0">sys</span><span class="s2">.</span><span class="s0">version</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Python executable:&quot;</span><span class="s2">, </span><span class="s0">sys</span><span class="s2">.</span><span class="s0">executable</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Project directory:&quot;</span><span class="s2">, </span><span class="s0">os</span><span class="s2">.</span><span class="s0">getcwd</span><span class="s2">())</span>
+
+<span class="s0">packages </span><span class="s2">= [</span>
+    <span class="s3">&quot;pandas&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;numpy&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;sklearn&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;xgboost&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;shap&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;pypdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;langchain&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;sentence_transformers&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;chromadb&quot;</span><span class="s2">,</span>
+<span class="s2">]</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Package availability:&quot;</span><span class="s2">)</span>
+
+<span class="s1">for </span><span class="s0">package </span><span class="s1">in </span><span class="s0">packages</span><span class="s2">:</span>
+    <span class="s0">installed </span><span class="s2">= </span><span class="s0">importlib</span><span class="s2">.</span><span class="s0">util</span><span class="s2">.</span><span class="s0">find_spec</span><span class="s2">(</span><span class="s0">package</span><span class="s2">) </span><span class="s1">is not None</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;</span><span class="s1">{</span><span class="s0">package</span><span class="s1">}</span><span class="s3">: </span><span class="s1">{</span><span class="s3">'Installed' </span><span class="s1">if </span><span class="s0">installed </span><span class="s1">else </span><span class="s3">'Not installed'</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s0">importlib</span><span class="s2">.</span><span class="s0">util</span>
+
+<span class="s1">for </span><span class="s0">package </span><span class="s1">in </span><span class="s2">[</span>
+    <span class="s3">&quot;xgboost&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;shap&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;pypdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;langchain&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;sentence_transformers&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;chromadb&quot;</span>
+<span class="s2">]:</span>
+    <span class="s0">print</span><span class="s2">(</span>
+        <span class="s0">package</span><span class="s2">,</span>
+        <span class="s3">&quot;Installed&quot; </span><span class="s1">if </span><span class="s0">importlib</span><span class="s2">.</span><span class="s0">util</span><span class="s2">.</span><span class="s0">find_spec</span><span class="s2">(</span><span class="s0">package</span><span class="s2">)</span>
+        <span class="s1">else </span><span class="s3">&quot;Not installed&quot;</span>
+    <span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s2">%</span><span class="s0">pip install pypdf sentence</span><span class="s2">-</span><span class="s0">transformers chromadb</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s0">importlib</span><span class="s2">.</span><span class="s0">util</span>
+
+<span class="s0">packages </span><span class="s2">= [</span>
+    <span class="s3">&quot;pypdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;sentence_transformers&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;chromadb&quot;</span><span class="s2">,</span>
+<span class="s2">]</span>
+
+<span class="s1">for </span><span class="s0">package </span><span class="s1">in </span><span class="s0">packages</span><span class="s2">:</span>
+    <span class="s0">installed </span><span class="s2">= </span><span class="s0">importlib</span><span class="s2">.</span><span class="s0">util</span><span class="s2">.</span><span class="s0">find_spec</span><span class="s2">(</span><span class="s0">package</span><span class="s2">) </span><span class="s1">is not None</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;</span><span class="s1">{</span><span class="s0">package</span><span class="s1">}</span><span class="s3">: </span><span class="s1">{</span><span class="s3">'Installed' </span><span class="s1">if </span><span class="s0">installed </span><span class="s1">else </span><span class="s3">'Not installed'</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Guideline for the Management of Patients With Acute Coronary Syndromes&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.ahajournals.org/doi/10.1161/CIR.0000000000001309&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;American College of Cardiology, American Heart Association, American College of Emergency Physicians, National Association of EMS Physicians, and Society for Cardiovascular Angiography and Interventions&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2025</span><span class="s2">,</span>
+    <span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Clinical Practice Guideline&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Acute Coronary Syndromes and Their Management&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Advancing Heart, Lung, Blood and Sleep Research&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/sites/default/files/publications/advancing-heart-lung-blood-sleep-research-2025-508c.pdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2025</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Research Strategy Report&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Strategic Research Priorities for Heart, Lung, Blood, and Sleep Health&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Can you have a heart attack and not know it?&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.heart.org/en/news/2026/09/22/can-you-have-a-heart-attack-and-not-know-it&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;American Heart Association (AHA)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2026</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health News Article&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Silent Heart Attacks and Their Health Implications&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;HEART ATTACK Symptoms&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/heart-attack/symptoms&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Symptoms and Warning Signs&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;HEART ATTACK Diagnosis&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/heart-attack/diagnosis&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Diagnosis and Diagnostic Tests&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Heart Attacks in Women&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/heart-attack/women&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Risks, Symptoms, and Differences in Women&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;HEART ATTACK Recovery&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/heart-attack/recovery&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Recovery, Rehabilitation, and Follow-up Care&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;HEART ATTACK Treatment&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/heart-attack/treatment&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Treatment and Medical Management&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;HEART ATTACK Causes and Risk Factors&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/heart-attack/causes&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Causes and Risk Factors&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;The_Truth_about_Hispanic_Latina_Women_and_Heart_Disease_Factsheet&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/sites/default/files/publications/The_Truth_about_Hispanic_Latina_Women_and_Heart_Disease_Factsheet.pdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Education Fact Sheet&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Disease Awareness, Risk Factors, and Prevention in Hispanic/Latina Women&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;The_Truth_About_Women_and_Heart_Disease&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/sites/default/files/publications/The_Truth_About_Women_and_Heart_Disease_1.pdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Education Fact Sheet&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Disease Awareness, Risk Factors, and Prevention in Women&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Know the Difference - Cardiovascular Disease, Heart Disease, Coronary Heart Disease&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/sites/default/files/publications/FactSheetKnowDiffDesign2020V4a.pdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2020</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Education Fact Sheet&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Definitions and Differences Between Cardiovascular Disease, Heart Disease, and Coronary Heart Disease&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Smart Basics - What to Know to Keep Yours Healthy&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/sites/default/files/publications/AHM-2023-HeartSmartFactSheet_2.pdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2023</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Education Fact Sheet&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Health Basics, Cardiovascular Risk Factors, and Prevention&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Promises for Healthy Hearts How Hispanics and Latinos Can Prevent Heart Disease&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/sites/default/files/publications/yhyl-promises-for-healthy-hearts-booklet.pdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2024</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Education Booklet&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Disease Prevention and Heart-Healthy Living in Hispanic/Latino Communities&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Learn What a Heart Attack Feels Like&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/sites/default/files/publications/Learn%20What%20a%20Heart%20Attack%20Feels%20Like_October%202020_Final.pdf&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2020</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Awareness Poster&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Warning Signs and the Importance of Seeking Emergency Help&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Guidelines for the management of cardiovascular disease and chronic kidney disease&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://academic.oup.com/eurheartj/advance-article/doi/10.1093/eurheartj/ehag098/8766283&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;European Society of Cardiology (ESC), in collaboration with the European Renal Association (ERA)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2026</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Clinical Practice Guideline&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Management of Cardiovascular Disease in Patients With Chronic Kidney Disease&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Guidelines for the management of heart failure&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://academic.oup.com/eurheartj/article/47/38/5346/8766302&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;European Society of Cardiology (ESC)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2026</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Clinical Practice Guideline&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Failure Diagnosis, Risk Assessment, Treatment, and Long-Term Management&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Guidelines for the management of cardiovascular disease and pregnancy&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://academic.oup.com/eurheartj/article/46/43/4462/8234487&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;European Society of Cardiology (ESC), endorsed by the European Society of Gynecology (ESG)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2025</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Clinical Practice Guideline&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Management of Cardiovascular Disease During Pregnancy and the Postpartum Period&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Compendium of essential clinical terminology for hypertension-control programmes&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://iris.who.int/server/api/core/bitstreams/1b44ffca-fdad-4da1-b597-38935f5d8abd/content&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;World Health Organization (WHO)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Clinical Terminology Compendium&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Essential Clinical Terminology for Hypertension Control Programmes&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Blood Cholesterol What is Blood Cholesterol?&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/blood-cholesterol&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Blood Cholesterol, Its Role in the Body, and Its Relationship to Heart Health&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Blood Cholesterol Diagnosis&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/blood-cholesterol/diagnosis&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Blood Cholesterol Testing, Assessment, and Diagnosis&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Blood Cholesterol Causes and Risk Factors&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/blood-cholesterol/causes&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Causes of High Blood Cholesterol and Associated Risk Factors&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Blood Cholesterol Treatment&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/blood-cholesterol/treatment&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Management and Treatment of High Blood Cholesterol&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Blood Cholesterol Living With High Cholesterol&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/blood-cholesterol/living-with&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Managing High Blood Cholesterol and Maintaining Heart Health&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;High Blood Pressure What Is High Blood Pressure?&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/high-blood-pressure&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;High Blood Pressure Definitions, Overview, and Health Effects&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;High Blood Pressure Symptoms&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/high-blood-pressure/symptoms&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Symptoms and Warning Signs Associated With High Blood Pressure&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;High Blood Pressure Diagnosis&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/high-blood-pressure/diagnosis&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;High Blood Pressure Diagnosis, Blood Pressure Measurement, and Testing&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;High Blood Pressure Causes and Risk Factors&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/high-blood-pressure/causes&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Causes and Risk Factors of High Blood Pressure&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;High Blood Pressure Treatment&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.nhlbi.nih.gov/health/high-blood-pressure/treatment&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Heart, Lung, and Blood Institute (NHLBI), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;High Blood Pressure Treatment and Management&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.who.int/news-room/fact-sheets/detail/heart-attack&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;World Health Organization (WHO)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s4">2026</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Fact Sheet&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Heart Attack Causes, Symptoms, Risk Factors, Prevention, and Treatment&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span>
+
+<span class="s0">metadata </span><span class="s2">= {</span>
+    <span class="s3">&quot;title&quot;</span><span class="s2">: </span><span class="s3">&quot;Diabetes, Heart Disease, &amp; Stroke&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;source_url&quot;</span><span class="s2">: </span><span class="s3">&quot;https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-problems/heart-disease-stroke&quot;</span><span class="s2">,</span>
+    <span class="s3">&quot;organization&quot;</span><span class="s2">: </span><span class="s3">&quot;National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK), National Institutes of Health (NIH)&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;publication_year&quot;</span><span class="s2">: </span><span class="s1">None</span><span class="s2">,</span>
+<span class="s3">&quot;document_type&quot;</span><span class="s2">: </span><span class="s3">&quot;Health Information Webpage&quot;</span><span class="s2">,</span>
+<span class="s3">&quot;topic&quot;</span><span class="s2">: </span><span class="s3">&quot;Relationship Between Diabetes, Heart Disease, Stroke, and Cardiovascular Risk&quot;</span>
+<span class="s2">}</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">metadata</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+Find all pdf files and Extract text from each PDF <hr class="ls0">#%% 
+</span><span class="s1">from </span><span class="s0">pathlib </span><span class="s1">import </span><span class="s0">Path</span>
+<span class="s1">from </span><span class="s0">pypdf </span><span class="s1">import </span><span class="s0">PdfReader</span>
+
+<span class="s0">project_dir </span><span class="s2">= </span><span class="s0">Path</span><span class="s2">.</span><span class="s0">cwd</span><span class="s2">()</span>
+
+<span class="s0">documents_dir </span><span class="s2">= </span><span class="s0">project_dir </span><span class="s2">/ </span><span class="s3">&quot;RAG&quot; </span><span class="s2">/ </span><span class="s3">&quot;documents&quot;</span>
+
+<span class="s1">if not </span><span class="s0">documents_dir</span><span class="s2">.</span><span class="s0">exists</span><span class="s2">():</span>
+    <span class="s1">raise </span><span class="s0">FileNotFoundError</span><span class="s2">(</span>
+        <span class="s3">f&quot;Documents folder not found: </span><span class="s1">{</span><span class="s0">documents_dir</span><span class="s1">}\n</span><span class="s3">&quot;</span>
+        <span class="s3">&quot;Make sure the notebook is running from your project directory.&quot;</span>
+    <span class="s2">)</span>
+
+<span class="s0">pdf_files </span><span class="s2">= </span><span class="s0">sorted</span><span class="s2">(</span><span class="s0">documents_dir</span><span class="s2">.</span><span class="s0">glob</span><span class="s2">(</span><span class="s3">&quot;*.pdf&quot;</span><span class="s2">))</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Documents folder:&quot;</span><span class="s2">, </span><span class="s0">documents_dir</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Number of PDF files found:&quot;</span><span class="s2">, </span><span class="s0">len</span><span class="s2">(</span><span class="s0">pdf_files</span><span class="s2">))</span>
+
+<span class="s1">if not </span><span class="s0">pdf_files</span><span class="s2">:</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;No PDF files found. Check the folder and file extensions.&quot;</span><span class="s2">)</span>
+
+<span class="s0">documents </span><span class="s2">= []</span>
+
+<span class="s1">for </span><span class="s0">pdf_path </span><span class="s1">in </span><span class="s0">pdf_files</span><span class="s2">:</span>
+    <span class="s1">try</span><span class="s2">:</span>
+        <span class="s0">reader </span><span class="s2">= </span><span class="s0">PdfReader</span><span class="s2">(</span><span class="s0">str</span><span class="s2">(</span><span class="s0">pdf_path</span><span class="s2">))</span>
+        <span class="s0">page_texts </span><span class="s2">= []</span>
+
+        <span class="s1">for </span><span class="s0">page_number</span><span class="s2">, </span><span class="s0">page </span><span class="s1">in </span><span class="s0">enumerate</span><span class="s2">(</span><span class="s0">reader</span><span class="s2">.</span><span class="s0">pages</span><span class="s2">, </span><span class="s0">start</span><span class="s2">=</span><span class="s4">1</span><span class="s2">):</span>
+            <span class="s0">text </span><span class="s2">= </span><span class="s0">page</span><span class="s2">.</span><span class="s0">extract_text</span><span class="s2">() </span><span class="s1">or </span><span class="s3">&quot;&quot;</span>
+
+            <span class="s1">if </span><span class="s0">text</span><span class="s2">.</span><span class="s0">strip</span><span class="s2">():</span>
+                <span class="s0">page_texts</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span>
+                    <span class="s3">f&quot;[Page </span><span class="s1">{</span><span class="s0">page_number</span><span class="s1">}</span><span class="s3">]</span><span class="s1">\n{</span><span class="s0">text</span><span class="s2">.</span><span class="s0">strip</span><span class="s2">()</span><span class="s1">}</span><span class="s3">&quot;</span>
+                <span class="s2">)</span>
+
+        <span class="s0">full_text </span><span class="s2">= </span><span class="s3">&quot;</span><span class="s1">\n\n</span><span class="s3">&quot;</span><span class="s2">.</span><span class="s0">join</span><span class="s2">(</span><span class="s0">page_texts</span><span class="s2">)</span>
+
+        <span class="s0">documents</span><span class="s2">.</span><span class="s0">append</span><span class="s2">({</span>
+            <span class="s3">&quot;source&quot;</span><span class="s2">: </span><span class="s0">pdf_path</span><span class="s2">.</span><span class="s0">name</span><span class="s2">,</span>
+            <span class="s3">&quot;text&quot;</span><span class="s2">: </span><span class="s0">full_text</span><span class="s2">,</span>
+            <span class="s3">&quot;pages&quot;</span><span class="s2">: </span><span class="s0">len</span><span class="s2">(</span><span class="s0">reader</span><span class="s2">.</span><span class="s0">pages</span><span class="s2">)</span>
+        <span class="s2">})</span>
+
+        <span class="s0">print</span><span class="s2">(</span>
+            <span class="s3">f&quot;</span><span class="s1">\n</span><span class="s3">File: </span><span class="s1">{</span><span class="s0">pdf_path</span><span class="s2">.</span><span class="s0">name</span><span class="s1">}</span><span class="s3">&quot;</span>
+            <span class="s3">f&quot;</span><span class="s1">\n</span><span class="s3">Pages: </span><span class="s1">{</span><span class="s0">len</span><span class="s2">(</span><span class="s0">reader</span><span class="s2">.</span><span class="s0">pages</span><span class="s2">)</span><span class="s1">}</span><span class="s3">&quot;</span>
+            <span class="s3">f&quot;</span><span class="s1">\n</span><span class="s3">Characters extracted: </span><span class="s1">{</span><span class="s0">len</span><span class="s2">(</span><span class="s0">full_text</span><span class="s2">)</span><span class="s1">:</span><span class="s3">,</span><span class="s1">}</span><span class="s3">&quot;</span>
+        <span class="s2">)</span>
+
+        <span class="s1">if not </span><span class="s0">full_text</span><span class="s2">.</span><span class="s0">strip</span><span class="s2">():</span>
+            <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;WARNING: No text extracted. This PDF may be scanned.&quot;</span><span class="s2">)</span>
+
+    <span class="s1">except </span><span class="s0">Exception </span><span class="s1">as </span><span class="s0">error</span><span class="s2">:</span>
+        <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;</span><span class="s1">\n</span><span class="s3">Could not read </span><span class="s1">{</span><span class="s0">pdf_path</span><span class="s2">.</span><span class="s0">name</span><span class="s1">}</span><span class="s3">: </span><span class="s1">{</span><span class="s0">error</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Total documents processed:&quot;</span><span class="s2">, </span><span class="s0">len</span><span class="s2">(</span><span class="s0">documents</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span>
+    <span class="s3">&quot;Total extracted characters:&quot;</span><span class="s2">,</span>
+    <span class="s3">f&quot;</span><span class="s1">{</span><span class="s0">sum</span><span class="s2">(</span><span class="s0">len</span><span class="s2">(</span><span class="s0">doc</span><span class="s2">[</span><span class="s3">'text'</span><span class="s2">]) </span><span class="s1">for </span><span class="s0">doc </span><span class="s1">in </span><span class="s0">documents</span><span class="s2">)</span><span class="s1">:</span><span class="s3">,</span><span class="s1">}</span><span class="s3">&quot;</span>
+<span class="s2">)</span>
+<hr class="ls0"><span class="s0">#%% md 
+Display a short preview of the first document <hr class="ls0">#%% 
+</span>
+<span class="s1">if </span><span class="s0">documents </span><span class="s1">and </span><span class="s0">documents</span><span class="s2">[</span><span class="s4">0</span><span class="s2">][</span><span class="s3">&quot;text&quot;</span><span class="s2">].</span><span class="s0">strip</span><span class="s2">():</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Source:&quot;</span><span class="s2">, </span><span class="s0">documents</span><span class="s2">[</span><span class="s4">0</span><span class="s2">][</span><span class="s3">&quot;source&quot;</span><span class="s2">])</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Extracted text preview:</span><span class="s1">\n</span><span class="s3">&quot;</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s0">documents</span><span class="s2">[</span><span class="s4">0</span><span class="s2">][</span><span class="s3">&quot;text&quot;</span><span class="s2">][:</span><span class="s4">2000</span><span class="s2">])</span>
+<span class="s1">else</span><span class="s2">:</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;No extracted text available to preview.&quot;</span><span class="s2">)</span>
+<hr class="ls0"><span class="s0">#%% md 
+Split extracted PDF text into chunks <hr class="ls0">#%% 
+CHUNK_SIZE </span><span class="s2">= </span><span class="s4">1000</span>
+<span class="s0">CHUNK_OVERLAP </span><span class="s2">= </span><span class="s4">150</span>
+
+<span class="s0">chunks </span><span class="s2">= []</span>
+
+<span class="s1">for </span><span class="s0">document </span><span class="s1">in </span><span class="s0">documents</span><span class="s2">:</span>
+    <span class="s0">text </span><span class="s2">= </span><span class="s0">document</span><span class="s2">[</span><span class="s3">&quot;text&quot;</span><span class="s2">]</span>
+    <span class="s0">source </span><span class="s2">= </span><span class="s0">document</span><span class="s2">[</span><span class="s3">&quot;source&quot;</span><span class="s2">]</span>
+
+    <span class="s0">pages </span><span class="s2">= </span><span class="s0">text</span><span class="s2">.</span><span class="s0">split</span><span class="s2">(</span><span class="s3">&quot;[Page &quot;</span><span class="s2">)</span>
+
+    <span class="s1">for </span><span class="s0">page_section </span><span class="s1">in </span><span class="s0">pages</span><span class="s2">:</span>
+        <span class="s1">if not </span><span class="s0">page_section</span><span class="s2">.</span><span class="s0">strip</span><span class="s2">():</span>
+            <span class="s1">continue</span>
+
+        <span class="s0">page_number_text</span><span class="s2">, </span><span class="s0">separator</span><span class="s2">, </span><span class="s0">page_text </span><span class="s2">= (</span>
+            <span class="s0">page_section</span><span class="s2">.</span><span class="s0">partition</span><span class="s2">(</span><span class="s3">&quot;]&quot;</span><span class="s2">)</span>
+        <span class="s2">)</span>
+
+        <span class="s1">if not </span><span class="s0">separator</span><span class="s2">:</span>
+            <span class="s1">continue</span>
+
+        <span class="s1">try</span><span class="s2">:</span>
+            <span class="s0">page_number </span><span class="s2">= </span><span class="s0">int</span><span class="s2">(</span><span class="s0">page_number_text</span><span class="s2">.</span><span class="s0">strip</span><span class="s2">())</span>
+        <span class="s1">except </span><span class="s0">ValueError</span><span class="s2">:</span>
+            <span class="s1">continue</span>
+
+        <span class="s0">page_text </span><span class="s2">= </span><span class="s0">page_text</span><span class="s2">.</span><span class="s0">strip</span><span class="s2">()</span>
+
+        <span class="s1">if not </span><span class="s0">page_text</span><span class="s2">:</span>
+            <span class="s1">continue</span>
+
+        <span class="s0">start </span><span class="s2">= </span><span class="s4">0</span>
+
+        <span class="s1">while </span><span class="s0">start </span><span class="s2">&lt; </span><span class="s0">len</span><span class="s2">(</span><span class="s0">page_text</span><span class="s2">):</span>
+            <span class="s0">end </span><span class="s2">= </span><span class="s0">min</span><span class="s2">(</span><span class="s0">start </span><span class="s2">+ </span><span class="s0">CHUNK_SIZE</span><span class="s2">, </span><span class="s0">len</span><span class="s2">(</span><span class="s0">page_text</span><span class="s2">))</span>
+            <span class="s0">chunk_text </span><span class="s2">= </span><span class="s0">page_text</span><span class="s2">[</span><span class="s0">start</span><span class="s2">:</span><span class="s0">end</span><span class="s2">].</span><span class="s0">strip</span><span class="s2">()</span>
+
+            <span class="s1">if </span><span class="s0">chunk_text</span><span class="s2">:</span>
+                <span class="s0">chunks</span><span class="s2">.</span><span class="s0">append</span><span class="s2">({</span>
+                    <span class="s3">&quot;text&quot;</span><span class="s2">: </span><span class="s0">chunk_text</span><span class="s2">,</span>
+                    <span class="s3">&quot;source&quot;</span><span class="s2">: </span><span class="s0">source</span><span class="s2">,</span>
+                    <span class="s3">&quot;page&quot;</span><span class="s2">: </span><span class="s0">page_number</span>
+                <span class="s2">})</span>
+
+            <span class="s1">if </span><span class="s0">end </span><span class="s2">&gt;= </span><span class="s0">len</span><span class="s2">(</span><span class="s0">page_text</span><span class="s2">):</span>
+                <span class="s1">break</span>
+
+            <span class="s0">start </span><span class="s2">= </span><span class="s0">end </span><span class="s2">- </span><span class="s0">CHUNK_OVERLAP</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Total chunks created:&quot;</span><span class="s2">, </span><span class="s0">len</span><span class="s2">(</span><span class="s0">chunks</span><span class="s2">))</span>
+
+<span class="s1">if </span><span class="s0">chunks</span><span class="s2">:</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">First chunk source:&quot;</span><span class="s2">, </span><span class="s0">chunks</span><span class="s2">[</span><span class="s4">0</span><span class="s2">][</span><span class="s3">&quot;source&quot;</span><span class="s2">])</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;First chunk page:&quot;</span><span class="s2">, </span><span class="s0">chunks</span><span class="s2">[</span><span class="s4">0</span><span class="s2">][</span><span class="s3">&quot;page&quot;</span><span class="s2">])</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">First chunk preview:</span><span class="s1">\n</span><span class="s3">&quot;</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s0">chunks</span><span class="s2">[</span><span class="s4">0</span><span class="s2">][</span><span class="s3">&quot;text&quot;</span><span class="s2">][:</span><span class="s4">500</span><span class="s2">])</span>
+<hr class="ls0"><span class="s0">#%% 
+</span><span class="s2">%</span><span class="s0">pip install pinecone</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s2">%</span><span class="s0">pip install python</span><span class="s2">-</span><span class="s0">dotenv</span><hr class="ls0"><span class="s0">#%% md 
+Connect to pinecone <hr class="ls0">#%% 
+</span><span class="s1">import </span><span class="s0">os</span>
+<span class="s1">from </span><span class="s0">dotenv </span><span class="s1">import </span><span class="s0">load_dotenv</span>
+<span class="s1">from </span><span class="s0">pinecone </span><span class="s1">import </span><span class="s0">Pinecone</span>
+<span class="s1">from </span><span class="s0">pathlib </span><span class="s1">import </span><span class="s0">Path</span>
+
+<span class="s0">project_dir </span><span class="s2">= </span><span class="s0">Path</span><span class="s2">.</span><span class="s0">cwd</span><span class="s2">()</span>
+<span class="s0">load_dotenv</span><span class="s2">(</span><span class="s0">project_dir </span><span class="s2">/ </span><span class="s3">&quot;.env&quot;</span><span class="s2">)</span>
+
+<span class="s0">api_key </span><span class="s2">= </span><span class="s0">os</span><span class="s2">.</span><span class="s0">getenv</span><span class="s2">(</span><span class="s3">&quot;PINECONE_API_KEY&quot;</span><span class="s2">)</span>
+
+<span class="s1">if not </span><span class="s0">api_key</span><span class="s2">:</span>
+    <span class="s1">raise </span><span class="s0">ValueError</span><span class="s2">(</span>
+        <span class="s3">&quot;Pinecone API key not found. Check your .env file.&quot;</span>
+    <span class="s2">)</span>
+
+<span class="s0">pc </span><span class="s2">= </span><span class="s0">Pinecone</span><span class="s2">(</span><span class="s0">api_key</span><span class="s2">=</span><span class="s0">api_key</span><span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Successfully connected to Pinecone.&quot;</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s1">from </span><span class="s0">pinecone </span><span class="s1">import </span><span class="s0">Pinecone</span><span class="s2">, </span><span class="s0">ServerlessSpec</span>
+
+<span class="s0">index_name </span><span class="s2">= </span><span class="s3">&quot;heart-disease-knowledge&quot;</span>
+
+<span class="s1">if not </span><span class="s0">pc</span><span class="s2">.</span><span class="s0">indexes</span><span class="s2">.</span><span class="s0">exists</span><span class="s2">(</span><span class="s0">index_name</span><span class="s2">):</span>
+    <span class="s0">pc</span><span class="s2">.</span><span class="s0">create_index</span><span class="s2">(</span>
+        <span class="s0">name</span><span class="s2">=</span><span class="s0">index_name</span><span class="s2">,</span>
+        <span class="s0">dimension</span><span class="s2">=</span><span class="s4">384</span><span class="s2">,</span>
+        <span class="s0">metric</span><span class="s2">=</span><span class="s3">&quot;cosine&quot;</span><span class="s2">,</span>
+        <span class="s0">spec</span><span class="s2">=</span><span class="s0">ServerlessSpec</span><span class="s2">(</span>
+            <span class="s0">cloud</span><span class="s2">=</span><span class="s3">&quot;aws&quot;</span><span class="s2">,</span>
+            <span class="s0">region</span><span class="s2">=</span><span class="s3">&quot;us-east-1&quot;</span>
+        <span class="s2">)</span>
+    <span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Pinecone index created.&quot;</span><span class="s2">)</span>
+<span class="s1">else</span><span class="s2">:</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Pinecone index already exists.&quot;</span><span class="s2">)</span>
+
+<span class="s0">index </span><span class="s2">= </span><span class="s0">pc</span><span class="s2">.</span><span class="s0">Index</span><span class="s2">(</span><span class="s0">index_name</span><span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Connected to:&quot;</span><span class="s2">, </span><span class="s0">index_name</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+Load a lightweight embedding model <hr class="ls0">#%% 
+</span><span class="s1">from </span><span class="s0">sentence_transformers </span><span class="s1">import </span><span class="s0">SentenceTransformer</span>
+
+<span class="s0">embedding_model </span><span class="s2">= </span><span class="s0">SentenceTransformer</span><span class="s2">(</span>
+    <span class="s3">&quot;sentence-transformers/all-MiniLM-L6-v2&quot;</span><span class="s2">,</span>
+    <span class="s0">device</span><span class="s2">=</span><span class="s3">&quot;cpu&quot;</span>
+<span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Embedding model loaded successfully.&quot;</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+Test the embedding model with a sample sentence <hr class="ls0">#%% 
+sample_text </span><span class="s2">= (</span>
+    <span class="s3">&quot;High blood pressure is a risk factor for heart disease.&quot;</span>
+<span class="s2">)</span>
+
+<span class="s0">sample_embedding </span><span class="s2">= </span><span class="s0">embedding_model</span><span class="s2">.</span><span class="s0">encode</span><span class="s2">(</span><span class="s0">sample_text</span><span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Embedding generated successfully.&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Vector dimensions:&quot;</span><span class="s2">, </span><span class="s0">sample_embedding</span><span class="s2">.</span><span class="s0">shape</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;First 10 values:&quot;</span><span class="s2">, </span><span class="s0">sample_embedding</span><span class="s2">[:</span><span class="s4">10</span><span class="s2">])</span><hr class="ls0"><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s0">hashlib</span>
+<span class="s1">import </span><span class="s0">numpy </span><span class="s1">as </span><span class="s0">np</span>
+
+<span class="s1">if not </span><span class="s0">chunks</span><span class="s2">:</span>
+    <span class="s1">raise </span><span class="s0">ValueError</span><span class="s2">(</span><span class="s3">&quot;No text chunks found. Run the chunking cell first.&quot;</span><span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Total chunks to upload:&quot;</span><span class="s2">, </span><span class="s0">len</span><span class="s2">(</span><span class="s0">chunks</span><span class="s2">))</span>
+
+<span class="s0">batch_size </span><span class="s2">= </span><span class="s4">32</span>
+<span class="s0">total_uploaded </span><span class="s2">= </span><span class="s4">0</span>
+
+<span class="s1">for </span><span class="s0">start </span><span class="s1">in </span><span class="s0">range</span><span class="s2">(</span><span class="s4">0</span><span class="s2">, </span><span class="s0">len</span><span class="s2">(</span><span class="s0">chunks</span><span class="s2">), </span><span class="s0">batch_size</span><span class="s2">):</span>
+
+    <span class="s0">batch </span><span class="s2">= </span><span class="s0">chunks</span><span class="s2">[</span><span class="s0">start</span><span class="s2">:</span><span class="s0">start </span><span class="s2">+ </span><span class="s0">batch_size</span><span class="s2">]</span>
+
+    <span class="s0">texts </span><span class="s2">= [</span><span class="s0">item</span><span class="s2">[</span><span class="s3">&quot;text&quot;</span><span class="s2">] </span><span class="s1">for </span><span class="s0">item </span><span class="s1">in </span><span class="s0">batch</span><span class="s2">]</span>
+
+    <span class="s0">embeddings </span><span class="s2">= </span><span class="s0">embedding_model</span><span class="s2">.</span><span class="s0">encode</span><span class="s2">(</span>
+        <span class="s0">texts</span><span class="s2">,</span>
+        <span class="s0">batch_size</span><span class="s2">=</span><span class="s4">16</span><span class="s2">,</span>
+        <span class="s0">convert_to_numpy</span><span class="s2">=</span><span class="s1">True</span><span class="s2">,</span>
+        <span class="s0">normalize_embeddings</span><span class="s2">=</span><span class="s1">True</span><span class="s2">,</span>
+        <span class="s0">show_progress_bar</span><span class="s2">=</span><span class="s1">False</span>
+    <span class="s2">)</span>
+
+    <span class="s0">vectors </span><span class="s2">= []</span>
+
+    <span class="s1">for </span><span class="s0">item</span><span class="s2">, </span><span class="s0">embedding </span><span class="s1">in </span><span class="s0">zip</span><span class="s2">(</span><span class="s0">batch</span><span class="s2">, </span><span class="s0">embeddings</span><span class="s2">):</span>
+
+        <span class="s0">unique_text </span><span class="s2">= (</span>
+            <span class="s3">f'</span><span class="s1">{</span><span class="s0">item</span><span class="s2">[</span><span class="s3">&quot;source&quot;</span><span class="s2">]</span><span class="s1">}</span><span class="s3">|'</span>
+            <span class="s3">f'</span><span class="s1">{</span><span class="s0">item</span><span class="s2">[</span><span class="s3">&quot;page&quot;</span><span class="s2">]</span><span class="s1">}</span><span class="s3">|'</span>
+            <span class="s3">f'</span><span class="s1">{</span><span class="s0">item</span><span class="s2">[</span><span class="s3">&quot;text&quot;</span><span class="s2">]</span><span class="s1">}</span><span class="s3">'</span>
+        <span class="s2">)</span>
+
+        <span class="s0">vector_id </span><span class="s2">= </span><span class="s0">hashlib</span><span class="s2">.</span><span class="s0">sha256</span><span class="s2">(</span>
+            <span class="s0">unique_text</span><span class="s2">.</span><span class="s0">encode</span><span class="s2">(</span><span class="s3">&quot;utf-8&quot;</span><span class="s2">)</span>
+        <span class="s2">).</span><span class="s0">hexdigest</span><span class="s2">()</span>
+
+        <span class="s0">vectors</span><span class="s2">.</span><span class="s0">append</span><span class="s2">({</span>
+            <span class="s3">&quot;id&quot;</span><span class="s2">: </span><span class="s0">vector_id</span><span class="s2">,</span>
+            <span class="s3">&quot;values&quot;</span><span class="s2">: </span><span class="s0">embedding</span><span class="s2">.</span><span class="s0">tolist</span><span class="s2">(),</span>
+            <span class="s3">&quot;metadata&quot;</span><span class="s2">: {</span>
+                <span class="s3">&quot;text&quot;</span><span class="s2">: </span><span class="s0">item</span><span class="s2">[</span><span class="s3">&quot;text&quot;</span><span class="s2">],</span>
+                <span class="s3">&quot;source&quot;</span><span class="s2">: </span><span class="s0">item</span><span class="s2">[</span><span class="s3">&quot;source&quot;</span><span class="s2">],</span>
+                <span class="s3">&quot;page&quot;</span><span class="s2">: </span><span class="s0">int</span><span class="s2">(</span><span class="s0">item</span><span class="s2">[</span><span class="s3">&quot;page&quot;</span><span class="s2">])</span>
+            <span class="s2">}</span>
+        <span class="s2">})</span>
+
+    <span class="s5"># Upload this batch to Pinecone</span>
+    <span class="s0">index</span><span class="s2">.</span><span class="s0">upsert</span><span class="s2">(</span><span class="s0">vectors</span><span class="s2">=</span><span class="s0">vectors</span><span class="s2">)</span>
+
+    <span class="s0">total_uploaded </span><span class="s2">+= </span><span class="s0">len</span><span class="s2">(</span><span class="s0">vectors</span><span class="s2">)</span>
+
+    <span class="s1">if </span><span class="s0">total_uploaded </span><span class="s2">% </span><span class="s4">320 </span><span class="s2">== </span><span class="s4">0 </span><span class="s1">or </span><span class="s0">total_uploaded </span><span class="s2">== </span><span class="s0">len</span><span class="s2">(</span><span class="s0">chunks</span><span class="s2">):</span>
+        <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Uploaded </span><span class="s1">{</span><span class="s0">total_uploaded</span><span class="s1">}</span><span class="s3">/</span><span class="s1">{</span><span class="s0">len</span><span class="s2">(</span><span class="s0">chunks</span><span class="s2">)</span><span class="s1">} </span><span class="s3">chunks&quot;</span><span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Embedding generation and upload completed.&quot;</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+Check the current Pinecone index statistics <hr class="ls0">#%% 
+</span>
+<span class="s0">stats </span><span class="s2">= </span><span class="s0">index</span><span class="s2">.</span><span class="s0">describe_index_stats</span><span class="s2">()</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Total vectors stored:&quot;</span><span class="s2">, </span><span class="s0">stats</span><span class="s2">.</span><span class="s0">total_vector_count</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Index dimension:&quot;</span><span class="s2">, </span><span class="s0">stats</span><span class="s2">.</span><span class="s0">dimension</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+Medical question to test retrieval <hr class="ls0">#%% 
+query </span><span class="s2">= </span><span class="s3">&quot;What are the common risk factors for heart disease?&quot;</span>
+
+<span class="s5"># Converting the question into an embedding</span>
+<span class="s0">query_embedding </span><span class="s2">= </span><span class="s0">embedding_model</span><span class="s2">.</span><span class="s0">encode</span><span class="s2">(</span>
+    <span class="s0">query</span><span class="s2">,</span>
+    <span class="s0">convert_to_numpy</span><span class="s2">=</span><span class="s1">True</span><span class="s2">,</span>
+    <span class="s0">normalize_embeddings</span><span class="s2">=</span><span class="s1">True</span>
+<span class="s2">).</span><span class="s0">tolist</span><span class="s2">()</span>
+
+<span class="s5"># Search Pinecone for the 5 most relevant chunks</span>
+<span class="s0">search_results </span><span class="s2">= </span><span class="s0">index</span><span class="s2">.</span><span class="s0">query</span><span class="s2">(</span>
+    <span class="s0">vector</span><span class="s2">=</span><span class="s0">query_embedding</span><span class="s2">,</span>
+    <span class="s0">top_k</span><span class="s2">=</span><span class="s4">5</span><span class="s2">,</span>
+    <span class="s0">include_metadata</span><span class="s2">=</span><span class="s1">True</span>
+<span class="s2">)</span>
+
+<span class="s5"># Display the retrieved passages</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Question:&quot;</span><span class="s2">, </span><span class="s0">query</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Retrieved medical evidence:</span><span class="s1">\n</span><span class="s3">&quot;</span><span class="s2">)</span>
+
+<span class="s1">for </span><span class="s0">rank</span><span class="s2">, </span><span class="s0">match </span><span class="s1">in </span><span class="s0">enumerate</span><span class="s2">(</span><span class="s0">search_results</span><span class="s2">[</span><span class="s3">&quot;matches&quot;</span><span class="s2">], </span><span class="s0">start</span><span class="s2">=</span><span class="s4">1</span><span class="s2">):</span>
+    <span class="s0">metadata </span><span class="s2">= </span><span class="s0">match</span><span class="s2">[</span><span class="s3">&quot;metadata&quot;</span><span class="s2">]</span>
+
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Result </span><span class="s1">{</span><span class="s0">rank</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Similarity score: </span><span class="s1">{</span><span class="s0">match</span><span class="s2">[</span><span class="s3">'score'</span><span class="s2">]</span><span class="s1">:</span><span class="s3">.4f</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Source PDF: </span><span class="s1">{</span><span class="s0">metadata</span><span class="s2">[</span><span class="s3">'source'</span><span class="s2">]</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Page: </span><span class="s1">{</span><span class="s0">metadata</span><span class="s2">[</span><span class="s3">'page'</span><span class="s2">]</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Text: </span><span class="s1">{</span><span class="s0">metadata</span><span class="s2">[</span><span class="s3">'text'</span><span class="s2">][:</span><span class="s4">700</span><span class="s2">]</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;-&quot; </span><span class="s2">* </span><span class="s4">80</span><span class="s2">)</span></pre>
+</body>
+</html>
