@@ -1,0 +1,28 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Next.js
+node_modules/
+.next/
+dist/
+
+# Editors
+.idea/
+.vscode/
+
+# Local data and models
+*.db
+*.sqlite3
+*.pkl
+*.joblib
