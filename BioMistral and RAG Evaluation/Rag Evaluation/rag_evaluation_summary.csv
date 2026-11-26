@@ -1,0 +1,5 @@
+Metric,Reviewed Questions,Average Score,Percentage of Maximum
+retrieval_relevance,30,1.9,95.0
+faithfulness,30,1.57,78.33
+answer_correctness,30,1.4,70.0
+clinical_safety,30,1.8,90.0
