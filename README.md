@@ -38,6 +38,15 @@ Python (the development environment used Python 3.12), Node.js and npm compatibl
 
 The Heart Failure Prediction Dataset is used for model training and evaluation. The dataset file is `heart.csv`. 
 
+### 6. RAG Knowledge Base Documents
+
+The medical reference documents used to develop the RAG knowledge base are provided separately through Google Drive due to GitHub file size limitations.
+
+Google Drive link: [(https://drive.google.com/drive/folders/18ReS8cZB79x0U855-4mVjqkP3ZZyRL2Y?usp=sharing)]
+
+Download the medical reference documents and place them inside the `RAG/documents/` directory before executing the `CDSS_RAG.ipynb` notebook to rebuild the knowledge base.
+
+
 ## 7. Machine Learning and SHAP
 
 ### 7.1 Files
